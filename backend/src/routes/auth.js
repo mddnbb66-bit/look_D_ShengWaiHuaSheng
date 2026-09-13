@@ -2,7 +2,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 const router = express.Router();
 //jwt
-const JWT_SECRET = process.env.JWT_SECRET || "develpemnt-secret";
+const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "20s";
 function signToken(user) {
 	return jwt.sign(

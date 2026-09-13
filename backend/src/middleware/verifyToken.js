@@ -1,4 +1,7 @@
+import jwt from "jsonwebtoken";
+
 export default function verifyToken(req, res, next) {
+	const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 	let token = null;
 	const authorization = req.headers.authorization;
 	//是否以bearer开头
@@ -8,13 +11,22 @@ export default function verifyToken(req, res, next) {
 	}
 	// 没有token? 返回错误信息
 	if (!token) {
-		res.status(403).json({
+		res.status(401).json({
 			code: 40101,
 			message: "没有token",
 		});
 		return;
 	}
-	next();
+	//验证token是否合法
+	try {
+		req.user = jwt.verify(token, JWT_SECRET);
+		next();
+	} catch (error) {
+		res.status(403).json({
+			code: 40101,
+			message: "token不合法",
+		});
+	}
 }
 //  else {
 // 		res.status(401).json({
