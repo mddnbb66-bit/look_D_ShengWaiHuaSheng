@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { login } from "../../api/login.js";
 import http from "../../api/request.js";
-function  App() {
+import { useNavigate } from 'react-router-dom';
+
+function  AuthPage() {
+	const navigate = useNavigate()
 	//loading代表登录状态 loading===true 代表登录提交
 	// loading 表示登录请求是否正在处理中
     const [loading, setLoading] = useState(false)
@@ -36,6 +39,7 @@ function  App() {
 		        setMessage(res.message);
 				//登录成功本地拉取
 				setSavedEmail(JSON.parse(localStorage.getItem('user')).email)
+				navigate('/projects')
 			}else{
 				//走别的逻辑
 				setMessage('注册？')
@@ -84,4 +88,4 @@ function  App() {
   )
 }
 
-export default  App
+export default  AuthPage

@@ -1,5 +1,6 @@
-import AuthPage from "./components/login/AuthPage.jsx";
 
+import { RouterProvider } from "react-router-dom";
+import {router} from './router/index.tsx'
 export default function App() {
-  return <AuthPage />;
+  return <RouterProvider router={router} />;
 }
