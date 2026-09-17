@@ -1,5 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
+import User from "../model/User";
+import bcrypt from "bcryptjs";
 const router = express.Router();
 //jwt
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
@@ -17,7 +19,6 @@ router.post("/login", (req, res) => {
 	const authorization = req.headers.authorization;
 	if (authorization?.startsWith("Bearer ")) {
 		const token = authorization.slice(7);
-		console.log(token);
 	}
 	const { email, password } = req.body;
 	if (!email || !password) {
@@ -35,6 +36,26 @@ router.post("/login", (req, res) => {
 		});
 	} else {
 		return res.status(401).json({ code: 40101, message: "邮箱或密码错误" });
+	}
+});
+//注册逻辑
+router.post("/register", async (req, res) => {
+	const { email, password } = req.body || {}; //{}解构不会爆错
+	if (!email || !password) {
+		return res.status(400).json({ code: 40001, message: "邮箱和密码不能为空" });
+	}
+	try {
+		const foundUser = await User.findOne({ email }); //查找是否有重复邮箱  //根据邮箱查询
+		if (foundUser) {
+			return res.status(409).json({ code: 40901, message: "邮箱已注册" });
+		}
+		//开始注册吧
+		//把前端的密码拿过来变成hash
+		const passwordHash = await bcrypt.hash(password, 10);
+		const user = await User.create({ email, passwordHash });
+		return res.status(200).json({ code: 0, message: "注册成功", data: user.toSafeJSON() });
+	} catch (error) {
+		return res.status(500).json({ code: 50000, message: "注册失败" });
 	}
 });
 //测试jwt相关路由
