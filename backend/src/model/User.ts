@@ -1,17 +1,19 @@
 import { Schema, model, type Document, type Types } from "mongoose";
 // 表示 IUser 除了包含你定义的用户字段和方法，还包含 Mongoose 文档的能力，例如：user.save();user.deleteOne();user.updateOne();user._id;
 // UserMethods：你自定义的实例方法，比如 toSafeJSON()
-interface Userproperty {
+interface UserAttribite {
 	email: string;
 	passwordHash: string;
+	createdAt: Date;
 }
 interface UserMethods {
 	toSafeJSON(): {
 		id: Types.ObjectId;
 		email: string;
+		createdAt: Date;
 	};
 }
-interface IUser extends Document, Userproperty, UserMethods {
+interface IUser extends Document, UserAttribite, UserMethods {
 	_id: Types.ObjectId;
 }
 
@@ -28,7 +30,12 @@ const UserSchema = new Schema<IUser>(
 			type: String,
 			required: true,
 		},
+		createdAt: {
+			type: Date,
+			default: Date.now,
+		},
 	},
+
 	{
 		collection: "users",
 	}
@@ -38,6 +45,7 @@ UserSchema.methods.toSafeJSON = function (this: IUser) {
 	return {
 		email: this.email,
 		id: this._id,
+		createdAt: this.createdAt,
 	};
 };
 const User = model<IUser>("User", UserSchema);

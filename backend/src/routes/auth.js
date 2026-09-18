@@ -14,28 +14,32 @@ function signToken(user) {
 	); //过期时间
 }
 //登录逻辑
-router.post("/login", (req, res) => {
-	// 读取 authorization 请求头
-	const authorization = req.headers.authorization;
-	if (authorization?.startsWith("Bearer ")) {
-		const token = authorization.slice(7);
-	}
-	const { email, password } = req.body;
-	if (!email || !password) {
-		return res.status(400).json({ code: 40001, message: "邮箱或密码错误" });
-	}
-	if (email === "mddnbb66@gmail.com" && password === "a") {
-		const token = signToken(user);
-		return res.status(200).json({
-			code: 0,
-			message: "登录成功",
-			data: {
-				token: token,
-				user: { email },
-			},
-		});
-	} else {
-		return res.status(401).json({ code: 40101, message: "邮箱或密码错误" });
+router.post("/login", async (req, res) => {
+	try {
+		const { email, password } = req.body || {};
+		if (!email || !password) {
+			return res.status(400).json({ code: 40001, message: "邮箱或密码错误" });
+		}
+		const user = await User.findOne({ email });
+		if (!user) {
+			return res.status(401).json({ code: 40101, message: "用户未注册" });
+		}
+		const isMatch = await bcrypt.compare(password, user.passwordHash);
+		if (isMatch) {
+			const token = signToken(user);
+			return res.status(200).json({
+				code: 0,
+				message: "登录成功",
+				data: {
+					token: token,
+					user: user.toSafeJSON(),
+				},
+			});
+		} else {
+			return res.status(401).json({ code: 40101, message: "邮箱或密码错误" });
+		}
+	} catch (error) {
+		return res.status(500).json({ code: 50000, message: "登录失败，请稍后重试" });
 	}
 });
 //注册逻辑
