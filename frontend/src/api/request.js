@@ -17,9 +17,11 @@ http.interceptors.request.use((config) => {
 //集中处理token失效的问题
 http.interceptors.response.use(
 	(response) => {
+		// 请求成功分支
 		return response.data;
 	},
 	(error) => {
+		// 请求失败分支
 		if (error.response?.status === 403) {
 			//删token和user缓存
 			localStorage.removeItem("user");

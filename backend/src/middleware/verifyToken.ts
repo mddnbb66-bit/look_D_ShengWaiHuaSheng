@@ -1,6 +1,12 @@
 import jwt from "jsonwebtoken";
-
-export default function verifyToken(req, res, next) {
+declare global {
+	namespace Express {
+		interface Request {
+			user?: jwt.JwtPayload | string;
+		}
+	}
+}
+export default function verifyToken(req: any, res: any, next: any) {
 	const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 	let token = null;
 	const authorization = req.headers.authorization;
@@ -20,6 +26,14 @@ export default function verifyToken(req, res, next) {
 	//验证token是否合法
 	try {
 		req.user = jwt.verify(token, JWT_SECRET);
+		// 验证成功后
+		// 		{
+		//   uid: "用户的数据库ID",
+		//   email: "用户邮箱",
+		//   iat: 生成时间,
+		//   exp: 过期时间
+		// }
+		// 把这种东西放到req.user里面去
 		next();
 	} catch (error) {
 		res.status(403).json({

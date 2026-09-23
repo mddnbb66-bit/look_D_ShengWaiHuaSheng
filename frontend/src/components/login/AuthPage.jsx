@@ -2,7 +2,7 @@ import { useState } from "react";
 import { login, register } from "../../api/login.js";
 import http from "../../api/request.js";
 import { useNavigate } from "react-router-dom";
-
+import { Button } from "antd";
 function AuthPage() {
 	const navigate = useNavigate();
 	//loading代表登录状态 loading===true 代表登录提交
@@ -110,21 +110,29 @@ function AuthPage() {
 					onChange={(event) => setPassword(event.target.value)}
 					required
 				/>
-				<button type="submit" disabled={loading}>
+				<Button type="primary" htmlType="submit" disabled={loading}>
 					{loading === true ? "提交中" : "提交"}
-				</button>
+				</Button>
 				<p>{message}</p>
 				<p>保存的邮箱：{savedEmail}</p>
-				<button type="button" onClick={handleLogout} disabled={loading}>
+
+				<Button type="primary" htmlType="button" disabled={loading} onClick={handleLogout}>
 					{loading === true ? "登录中" : "退出登录"}
-				</button>
-				<button type="button" onClick={handleRegister} disabled={loading}>
+				</Button>
+
+				<Button
+					type="primary"
+					htmlType="button"
+					disabled={loading}
+					onClick={handleRegister}
+				>
 					{"注册"}
-				</button>
+				</Button>
 			</form>
-			<button type="button" onClick={checkToken}>
+
+			<Button type="primary" htmlType="button" disabled={loading} onClick={checkToken}>
 				{"检查token是否传递3001/checktoken"}
-			</button>
+			</Button>
 		</>
 	);
 }

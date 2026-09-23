@@ -8,7 +8,7 @@ interface UserAttribite {
 }
 interface UserMethods {
 	toSafeJSON(): {
-		id: Types.ObjectId;
+		id: string;
 		email: string;
 		createdAt: Date;
 	};
@@ -44,7 +44,7 @@ const UserSchema = new Schema<IUser>(
 UserSchema.methods.toSafeJSON = function (this: IUser) {
 	return {
 		email: this.email,
-		id: this._id,
+		id: this._id.toString(),
 		createdAt: this.createdAt,
 	};
 };
