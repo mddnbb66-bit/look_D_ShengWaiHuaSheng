@@ -75,6 +75,11 @@ function ProjectList() {
 			cancelled = true;
 		};
 	}, []);
+	//获取对应的项目id 查看项目细节
+	function lookProjectDetail(pageId: string) {
+		navigate(`/editor/${pageId}`);
+	}
+
 	return (
 		<>
 			<h1>项目页</h1>
@@ -83,6 +88,7 @@ function ProjectList() {
 			</button>
 			<h2>项目列表</h2>
 			<Button htmlType="button" onClick={handleCreate}>
+				{/** 创建按钮：保存新项目 → 跳转 /editor/项目ID*/}
 				创建项目
 			</Button>
 			<hr />
@@ -101,7 +107,11 @@ function ProjectList() {
 					<li>加载中</li>
 				) : (
 					projects.map((item) => {
-						return <li key={item.pageId}>{item.name}</li>;
+						return (
+							<li key={item.pageId} onClick={() => lookProjectDetail(item.pageId)}>
+								{item.name}
+							</li>
+						);
 					})
 				)}
 			</ul>
