@@ -3,6 +3,7 @@ import { login, register } from "../../api/login.js";
 import http from "../../api/request.js";
 import { useNavigate } from "react-router-dom";
 import { Button } from "antd";
+
 function AuthPage() {
 	const navigate = useNavigate();
 	//loading代表登录状态 loading===true 代表登录提交

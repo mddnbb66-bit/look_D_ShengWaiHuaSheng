@@ -1,13 +1,19 @@
 import http from "./request.js";
+import type { PageDSL } from "@/core/schema/page";
+
 // 前端 发给 后端 后端req.body接受
 
 export interface SavePagePayload {
 	pageId?: string;
-	schema: Record<string, any>;
+	schema: PageDSL;
 	meta?: {
 		title?: string;
 		description?: string;
 	};
+	// 生成的项目缩略图（base64 PNG）
+	thumbnail?: string;
+	// 归属用户 id（创建时必传）
+	userId?: string;
 }
 //保存页面的响应  支持更新和创建
 // 后端返回的详情对象格式 	后端 还给 前端
@@ -19,7 +25,7 @@ export interface SavePageResponse {
 		name: string;
 		title: string;
 		description: string;
-		schema: Record<string, any>;
+		schema: PageDSL;
 		thumbnailUrl?: string;
 		createdAt?: string;
 		updatedAt?: string;
@@ -42,6 +48,14 @@ export interface PageSummary {
 	createdAt?: string;
 	updatedAt?: string;
 }
+//删除的回复接口
+export interface DeletePageResponse {
+	code: number;
+	message: string;
+	data?: {
+		pageId: string;
+	};
+}
 
 export function savePage(payload: SavePagePayload): Promise<SavePageResponse> {
 	console.log("执行了创建项目");
@@ -55,4 +69,9 @@ export function listPages(): Promise<ListPagesResponse> {
 export function getPageById(id: string): Promise<SavePageResponse> {
 	console.log("读取指定项目。读新建/读老的,走这个函数？");
 	return http.get(`/api/pages/${id}`);
+}
+//删除项目
+export function deletePage(id: string): Promise<DeletePageResponse> {
+	console.log(`删除项目。${id}`);
+	return http.delete(`/api/pages/${id}`);
 }

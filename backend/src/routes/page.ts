@@ -3,8 +3,7 @@ import Page from "../model/Page.ts";
 import { ok, fail, RespCode } from "../utils/response.ts";
 import { type Request, type Response } from "express";
 import mongoose from "mongoose";
-import { time } from "console";
-import { title } from "process";
+
 const router = express.Router();
 // {
 //   method: "GET",
@@ -106,11 +105,11 @@ router.post("/save", async (req, res) => {
 		return fail(res, RespCode.SERVER_ERROR, "创建/保存失败", 500);
 	}
 });
-//对对应用户的对应项目进行编辑的在编辑器首页的接口，为啥要这个?因为列表返回到是摘要
-router.get("/:id", async (req: Request, res: Response) => {
-	const { id } = req.params || {}; //解构出前端url的项目id
+//对应用户的对应项目进行编辑的   这是在编辑器页的接口，为啥要这个?因为列表返回到是摘要
+router.get("/:pageId", async (req: Request, res: Response) => {
+	const { pageId } = req.params || {}; //解构出前端url的项目id
 	const uid = (req.user as any)?.uid;
-	if (!id) {
+	if (!pageId) {
 		return fail(res, RespCode.VALIDATION, "pageId不能为空", 400);
 	}
 	if (typeof uid !== "string" || !uid.trim()) {
@@ -118,17 +117,37 @@ router.get("/:id", async (req: Request, res: Response) => {
 		return fail(res, RespCode.UNAUTHORIZED, "token有问题", 401);
 	}
 	try {
-		const pageDoc = await Page.findOne({ _id: id, ownerid: uid });
+		const pageDoc = await Page.findOne({ _id: pageId, ownerid: uid });
 		if (!pageDoc) {
 			//因为这是id参数的问题
 			return fail(res, RespCode.VALIDATION, "未找到对应页面", 404);
 		}
 		return ok(res, RespCode.SUCCESS, "查到对应id的项目", pageDoc.toSafeJSON());
 	} catch (error) {
-		return fail(res, RespCode.NOT_FOUND, "查找你的对应项目失败", 404);
+		return fail(res, RespCode.SERVER_ERROR, "查找你的对应项目失败", 500);
 	}
 });
-
+//删除接口。先验证id合法性转
+router.delete("/:pageId", async (req: Request, res: Response) => {
+	const { pageId } = req.params;
+	const uid = (req.user as any)?.uid;
+	if (typeof uid !== "string" || !uid.trim()) {
+		//uid.trim()  如果是空字符串，这个可以防住
+		return fail(res, RespCode.UNAUTHORIZED, "token有问题", 401);
+	}
+	if (!mongoose.Types.ObjectId.isValid(pageId)) {
+		return fail(res, RespCode.VALIDATION, "pageid不合法", 400);
+	}
+	try {
+		let pageDoc = await Page.findOneAndDelete({ _id: pageId, ownerid: uid });
+		if (!pageDoc) {
+			return fail(res, RespCode.NOT_FOUND, "找不到对应项目id", 404);
+		}
+		return ok(res, RespCode.SUCCESS, "删除成功", pageDoc.toSafeJSON());
+	} catch (error) {
+		return fail(res, RespCode.SERVER_ERROR, "删除失败", 500);
+	}
+});
 //查询pages长这样
 // [
 //   {

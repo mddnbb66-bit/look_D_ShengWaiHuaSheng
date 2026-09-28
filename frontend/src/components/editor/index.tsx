@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { getPageById, savePage } from "../../api/page";
 import { Button } from "antd";
+import type { PageDSL } from "@/core/schema/page";
 export default function EditorIndex() {
 	const navigate = useNavigate();
 	const { id } = useParams<{ id: string }>(); //从url解构出项目传入的项目id
-	const [schema, setSchema] = useState<Record<string, any> | null>(null); //schema 是描述这个页面的数据对象，不是那块界面本身
+	const [schema, setSchema] = useState<PageDSL | null>(null); //schema 是描述这个页面的数据对象，不是那块界面本身
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [refreshFlag, setRefreshFlag] = useState(0); //重试按钮用的，人为制造一个变化。refreshFlag 就是这个「变化源」：
+	const [name, setName] = useState(""); //测试更不更新后面删除
 	useEffect(() => {
 		let cancelled = false; //这能避免离开编辑器或 ID 改变后，旧请求结果覆盖当前状态
 		const getPageDetail = async () => {
@@ -47,6 +49,7 @@ export default function EditorIndex() {
 			schema: schema,
 			meta: {},
 		};
+
 		try {
 			const res = await savePage(payload);
 			const code = res.code;
@@ -103,8 +106,23 @@ export default function EditorIndex() {
 			<p>这是主编辑页</p>
 			<hr />
 			<p>这个项目的id:{id}</p>
+			<label>
+				页面名称：
+				<input
+					disabled={loading}
+					type="text"
+					value={schema?.name ?? "加载中"}
+					onChange={(event) => {
+						if (!schema) return;
+						setSchema({
+							...schema,
+							name: event.target.value,
+						});
+					}}
+				/>
+			</label>
 			{loading ? <p>页面数据加载中</p> : <pre>{JSON.stringify(schema, null, 2)}</pre>}
-			<Button htmlType="button" onClick={handleSave}>
+			<Button htmlType="button" onClick={handleSave} disabled={loading}>
 				保存
 			</Button>
 		</>

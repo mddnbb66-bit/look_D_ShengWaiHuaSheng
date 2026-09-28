@@ -1,14 +1,16 @@
 import http from "../../api/request";
 import { Button } from "antd";
-import { savePage, listPages, type PageSummary } from "../../api/page";
+import { savePage, listPages, type PageSummary, deletePage, SavePagePayload } from "../../api/page";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Modal } from "antd";
+
 function ProjectList() {
 	//data
 	const [projects, setProjects] = useState<PageSummary[]>([]); //这个是读取的项目卡片列表
-	const [loading, setLoading] = useState(true); //展现加载状态
+	const [loading, setLoading] = useState(true); //展现首次加载状态
 	const [error, setError] = useState(""); //读取错误的状态
-
+	const [deletingId, setDeletingId] = useState(""); //判断删除的对应项目的加载状态
 	const navigate = useNavigate();
 
 	//method
@@ -23,12 +25,26 @@ function ProjectList() {
 	}
 	//创建项目
 	const handleCreate = async () => {
-		let payload = {
+		let payload: SavePagePayload = {
 			schema: {
+				id: "111",
+				type: "RootContainer",
 				name: "我的第一个项目",
-				props: {},
+				props: {
+					title: "第一个项目的对外标题",
+					description: "第一个项目的描述咕咕嘎嘎",
+				},
+				settings: {
+					width: 1920,
+					height: 1080,
+					backgroundColor: "white",
+					backgroundImage: "xxxurl",
+					gridSize: 111,
+				},
 				children: [],
 			},
+			thumbnail: "xxx",
+			userId: "sdda",
 		};
 		try {
 			const res = await savePage(payload);
@@ -52,6 +68,7 @@ function ProjectList() {
 				setLoading(true);
 				setError("");
 				const result = await listPages();
+				console.log(result);
 				//这个是为了上一次请求才来，设置的取消
 				if (cancelled) return;
 				if (result.code === 0) {
@@ -78,6 +95,51 @@ function ProjectList() {
 	//获取对应的项目id 查看项目细节
 	function lookProjectDetail(pageId: string) {
 		navigate(`/editor/${pageId}`);
+	}
+	//删除函数,删除完也要读取项目列表
+	async function handleDeleteProject(pageId: string, name: string) {
+		setError("");
+		let deleted = false;
+
+		Modal.confirm({
+			title: `确认删除项目:${name}`,
+			content: "删除后无法恢复",
+			okText: "删除",
+			cancelText: "取消",
+			async onOk() {
+				setDeletingId(pageId);
+				try {
+					//删除
+					const deleteResult = await deletePage(pageId);
+					if (deleteResult.code === 0) {
+						deleted = true;
+						//读取
+						const result = await listPages();
+						if (result.code === 0) {
+							console.log("读取成功");
+							setProjects(result.data);
+						} else {
+							throw new Error(result.message || "获取项目失败");
+						}
+					} else {
+						throw new Error(deleteResult.message || "删除项目失败");
+					}
+				} catch (err: any) {
+					if (deleted === false) {
+						setError(err.response?.data?.message || err.message || "删除错误");
+					} else {
+						setError(
+							`项目已删除，但列表刷新失败：${err.response?.data?.message || err.message || "请稍后重试"}`
+						);
+					}
+				} finally {
+					setDeletingId("");
+				}
+			},
+			onCancel() {
+				// 用户点击“取消”后，执行这里；不需要处理可以不写
+			},
+		});
 	}
 
 	return (
@@ -108,9 +170,18 @@ function ProjectList() {
 				) : (
 					projects.map((item) => {
 						return (
-							<li key={item.pageId} onClick={() => lookProjectDetail(item.pageId)}>
+							<div key={item.pageId} onClick={() => lookProjectDetail(item.pageId)}>
 								{item.name}
-							</li>
+								<Button
+									onClick={(event) => {
+										event?.stopPropagation();
+										handleDeleteProject(item.pageId, item.name);
+									}}
+									disabled={deletingId === item.pageId}
+								>
+									删除
+								</Button>
+							</div>
 						);
 					})
 				)}
