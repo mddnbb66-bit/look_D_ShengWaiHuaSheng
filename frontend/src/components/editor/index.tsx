@@ -1,18 +1,27 @@
 // 编辑器页：读取 URL 的 ID → 请求这个项目的详情
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { getPageById, savePage } from "../../api/page";
 import { Button } from "antd";
 import type { PageDSL } from "@/core/schema/page";
+import { useSchemaStore } from "@/store/schema-store";
+import { useShallow } from "zustand/shallow";
 export default function EditorIndex() {
 	const navigate = useNavigate();
 	const { id } = useParams<{ id: string }>(); //从url解构出项目传入的项目id
-	const [schema, setSchema] = useState<PageDSL | null>(null); //schema 是描述这个页面的数据对象，不是那块界面本身
+
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [refreshFlag, setRefreshFlag] = useState(0); //重试按钮用的，人为制造一个变化。refreshFlag 就是这个「变化源」：
 	const [name, setName] = useState(""); //测试更不更新后面删除
+	const container = useRef<null | HTMLDivElement>(null); //获取工作区的dom
+	const [scroll, setScroll] = useState({ left: 0, top: 0 });
+
+	const { schema, setSchema } = useSchemaStore(
+		//schema 是描述这个页面的数据对象，不是那块界面本身
+		useShallow((state) => ({ schema: state.schema, setSchema: state.setSchema }))
+	);
 	useEffect(() => {
 		let cancelled = false; //这能避免离开编辑器或 ID 改变后，旧请求结果覆盖当前状态
 		const getPageDetail = async () => {
@@ -20,6 +29,7 @@ export default function EditorIndex() {
 			try {
 				setLoading(true);
 				setError(""); //每次发新请求前先把上一次的错误清掉，否则旧错误会一直留在屏幕上
+				setSchema(null); //清除旧页面数据
 				const page = await getPageById(id);
 				if (cancelled) return;
 				if (page.code !== 0) {
@@ -40,10 +50,11 @@ export default function EditorIndex() {
 		return () => {
 			cancelled = true;
 		};
-	}, [id, refreshFlag]);
+	}, [id, refreshFlag, setSchema]);
 	//保存
 	async function handleSave() {
 		if (!id || !schema) return;
+		//修改的载荷？
 		const payload = {
 			pageId: id,
 			schema: schema,
@@ -61,6 +72,13 @@ export default function EditorIndex() {
 			console.log(error);
 		}
 	}
+	//获取工作区滚动的信息
+	function handleScroll() {
+		let node = container.current; //获取目标元素
+		if (!node) return; //m
+		setScroll({ left: node.scrollLeft, top: node.scrollTop });
+	}
+
 	if (error) {
 		//他人带这同id放访问就会出现这样的页面
 		return (
@@ -125,6 +143,53 @@ export default function EditorIndex() {
 			<Button htmlType="button" onClick={handleSave} disabled={loading}>
 				保存
 			</Button>
+			{schema && !loading && (
+				<div className="relative">
+					{/* 缩放栏 */}
+					<div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-1.5 text-xs">
+						<div>
+							<span>画布:</span>
+							<span>
+								{schema.settings.height} x {schema.settings.width}
+							</span>
+						</div>
+						<div className="flex items-center justify-between">
+							<button>[]</button>
+							<button>-</button>
+							<button>+</button>
+							<button>重置</button>
+						</div>
+					</div>
+					{/* 下面是灰色工作区 和标尺*/}
+					<div className="relative">
+						<div className="absolute left-24 top-0 z-20 bg-white ">横向标尺</div>
+						<div className="absolute left- 0 top-24 z-20 bg-white">竖向标尺</div>
+						<div
+							ref={container}
+							id="canvas"
+							className=" w-[900px] h-[500px] max-w-full overflow-auto bg-slate-100/80"
+							style={{
+								backgroundImage:
+									"radial-gradient(circle, #e2e8f0 0.5px, transparent 0.5px)",
+								backgroundSize: "16px 16px",
+							}}
+							//获取滚动的信息 元素滚动的时候触发
+							onScroll={handleScroll}
+						>
+							{/* //下面是渲染层 */}
+							<div
+								style={{
+									width: schema.settings.width,
+									height: schema.settings.height,
+									backgroundColor: schema.settings.backgroundColor || "red",
+								}}
+							>
+								这是大布
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 		</>
 	);
 }

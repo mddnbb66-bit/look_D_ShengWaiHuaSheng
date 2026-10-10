@@ -35,9 +35,9 @@ function ProjectList() {
 					description: "第一个项目的描述咕咕嘎嘎",
 				},
 				settings: {
-					width: 1920,
-					height: 1080,
-					backgroundColor: "white",
+					width: 100,
+					height: 100,
+					backgroundColor: "pink",
 					backgroundImage: "xxxurl",
 					gridSize: 111,
 				},
