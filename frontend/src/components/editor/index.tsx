@@ -173,69 +173,85 @@ export default function EditorIndex() {
 				保存
 			</Button>
 			{schema && !loading && (
-				<div className="relative">
-					{/* 缩放栏 */}
-					<div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-1.5 text-xs">
-						<div className=" flex items-center gap-3 text-slate-500">
-							<span>画布:</span>
-							<span>
-								{schema.settings.height} x {schema.settings.width}
-							</span>
-							<span>{scale}</span>
-						</div>
-						<div className="flex items-center justify-between">
-							<button>[]</button>
-							<button>-</button>
-							<button>+</button>
-							<button>重置</button>
-						</div>
+				<div className="grid  grid-rows-header grid-cols-custom h-[100vh] bg-slate-100/60">
+					<div className="col-start-1 col-end-4 row-start-1 row-end-2">
+						横跨3栏的工具栏
 					</div>
-					{/* 下面是灰色工作区 和标尺*/}
-					<div className="relative">
-						<div className="absolute left-24 top-0 z-20 bg-white ">横向标尺</div>
-						<div className="absolute left- 0 top-24 z-20 bg-white">竖向标尺</div>
-						{/* 下面是灰色工作区 */}
-						<div
-							ref={viewportRef}
-							id="viewport"
-							className=" w-[900px] h-[500px] max-w-full overflow-auto bg-slate-100/80"
-							style={{
-								backgroundImage:
-									"radial-gradient(circle, #e2e8f0 0.5px, transparent 0.5px)",
-								backgroundSize: "16px 16px",
-							}}
-							//获取滚动的信息 元素滚动的时候触发
-							onScroll={handleScroll}
-						>
-							{/* //下面是缩放占位层 */}
-							<div
-								className="relative"
-								style={{
-									width: scaledWidth,
-									height: scaledHeight,
-									minWidth: 320, //保证视觉上有最小尺寸，不塌陷
-									minHeight: 180,
-								}}
-							>
-								{/* //下面是渲染层 */}
+					{/* 组件栏 */}
+					<div className="border-r border-slate-200 bg-white">组件栏</div>
+					{/* 编辑区 */}
+					<div className="flex min-h-0 min-w-0 flex-col ">
+						{/* 缩放控制栏 */}
+						<div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-1.5 text-xs">
+							<div className=" flex items-center gap-3 text-slate-500">
+								<span>画布:</span>
+								<span>
+									{schema.settings.height} x {schema.settings.width}
+								</span>
+								<span>{scale}</span>
+							</div>
+							<div className="flex items-center justify-between">
+								<button>[]</button>
+								<button>-</button>
+								<button>+</button>
+								<button>重置</button>
+							</div>
+						</div>
+						{/* 下面是灰色工作区 和标尺*/}
+						<div className="relative">
+							<div className="absolute left-24 top-0 z-20 bg-white ">横向标尺</div>
+							<div className="absolute left- 0 top-24 z-20 bg-white">竖向标尺</div>
+							{/* 这个层是中间层 */}
+							<div className="ml-[28px] mt-[28px] flex-1 overflow-hidden">
+								{/* 下面是灰色工作区 */}
 								<div
-									ref={canvasRef}
-									id="canvas"
+									ref={viewportRef}
+									id="viewport"
+									className=" w-[900px] h-[500px] max-w-full overflow-auto bg-slate-100/80"
 									style={{
-										width: schema.settings.width,
-										height: schema.settings.height,
-										backgroundColor: schema.settings.backgroundColor || "red",
-										transform: `scale(${scale})`,
-										position: "absolute",
-										transformOrigin: "top left",
-										top: 0,
-										left: 0,
+										backgroundImage:
+											"radial-gradient(circle, #e2e8f0 0.5px, transparent 0.5px)",
+										backgroundSize: "16px 16px",
 									}}
+									//获取滚动的信息 元素滚动的时候触发
+									onScroll={handleScroll}
 								>
-									这是大布
+									{/* //下面是缩放占位层 */}
+									<div
+										className="relative"
+										style={{
+											width: scaledWidth,
+											height: scaledHeight,
+											minWidth: 320, //保证视觉上有最小尺寸，不塌陷
+											minHeight: 180,
+										}}
+									>
+										{/* //下面是渲染层 */}
+										<div
+											ref={canvasRef}
+											id="canvas"
+											style={{
+												width: schema.settings.width,
+												height: schema.settings.height,
+												backgroundColor:
+													schema.settings.backgroundColor || "red",
+												transform: `scale(${scale})`,
+												position: "absolute",
+												transformOrigin: "top left",
+												top: 0,
+												left: 0,
+											}}
+										>
+											这是大布
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
+					</div>
+					{/* 对话栏 */}
+					<div className="border-l border-slate-200 bg-white h-full overflow-hidden">
+						对话栏
 					</div>
 				</div>
 			)}
