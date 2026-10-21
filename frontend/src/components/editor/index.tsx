@@ -7,6 +7,8 @@ import { Button } from "antd";
 import type { PageDSL } from "@/core/schema/page";
 import { useSchemaStore } from "@/store/schema-store";
 import { useShallow } from "zustand/shallow";
+import { Minus, Plus, Maximize, RotateCcw } from "lucide-react";
+import { Ruler } from "./ruler/Ruler";
 //清洗数据的函数
 const toNumber = (value: number | string | undefined, defaultNum: number) => {
 	if (typeof value === "number") return value;
@@ -31,7 +33,18 @@ export default function EditorIndex() {
 		useShallow((state) => ({ schema: state.schema, setSchema: state.setSchema }))
 	);
 
-	const { autoFit, overViewScale, manualScale, scale, scaledWidth, scaledHeight } = useZoom({
+	const {
+		autoFit,
+		overViewScale,
+		manualScale,
+		scale,
+		scaledWidth,
+		scaledHeight,
+		savedView,
+		handleScaleChange,
+		handleResetScale,
+		handleSwitchOverview,
+	} = useZoom({
 		canvasSize,
 		viewportRef,
 	});
@@ -179,7 +192,7 @@ export default function EditorIndex() {
 					</div>
 					{/* 组件栏 */}
 					<div className="border-r border-slate-200 bg-white">组件栏</div>
-					{/* 编辑区 */}
+					{/* 中间栏 */}
 					<div className="flex min-h-0 min-w-0 flex-col ">
 						{/* 缩放控制栏 */}
 						<div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-1.5 text-xs">
@@ -190,24 +203,59 @@ export default function EditorIndex() {
 								</span>
 								<span>{scale}</span>
 							</div>
-							<div className="flex items-center justify-between">
-								<button>[]</button>
-								<button>-</button>
-								<button>+</button>
-								<button>重置</button>
+							{/* 处理缩放的 */}
+							<div className="flex items-center justify-between gap-1.5">
+								<button
+									className={`rounded-md border p-1 transition-all ${autoFit ? "border-brand-200 text-brand-500 bg-brand-50" : "border-slate-200 text-slate-400 hover:border-brand-200 hover:text-brand-500"}`}
+									onClick={handleSwitchOverview}
+									disabled={autoFit && !savedView}
+								>
+									<Maximize className="h-3.5 w-3.5" />
+								</button>
+								<button
+									className="rounded-md border border-slate-200 p-1 text-slate-400 hover:border-brand-200 hover:text-brand-500 transition-all"
+									onClick={() => handleScaleChange(scale - 0.1)}
+								>
+									<Minus className="h-3.5 w-3.5" />
+								</button>
+								<span className="w-12 text-center text-xs text-slate-500">
+									{Math.round(scale * 100)}%
+								</span>
+								<button
+									className="rounded-md border border-slate-200 p-1 text-slate-400 hover:border-brand-200 hover:text-brand-500 transition-all"
+									onClick={() => handleScaleChange(scale + 0.1)}
+								>
+									<Plus className="h-3.5 w-3.5" />
+								</button>
+								<button
+									className="rounded-md border border-slate-200 p-1 text-slate-400 hover:border-brand-200 hover:text-brand-500 transition-all ml-0.5"
+									onClick={handleResetScale}
+								>
+									<RotateCcw className="h-3.5 w-3.5" />
+								</button>
 							</div>
 						</div>
-						{/* 下面是灰色工作区 和标尺*/}
-						<div className="relative">
-							<div className="absolute left-24 top-0 z-20 bg-white ">横向标尺</div>
-							<div className="absolute left- 0 top-24 z-20 bg-white">竖向标尺</div>
-							{/* 这个层是中间层 */}
-							<div className="ml-[28px] mt-[28px] flex-1 overflow-hidden">
-								{/* 下面是灰色工作区 */}
+						{/* 标尺＋工作区容器 */}
+						<div className="relative flex  flex-1 overflow-hidden">
+							<Ruler
+								xOry="x"
+								length={canvasSize?.width ?? 0}
+								scale={scale}
+								scroll={scroll.left}
+							></Ruler>
+							<Ruler
+								xOry="y"
+								length={canvasSize?.height ?? 0}
+								scale={scale}
+								scroll={scroll.top}
+							></Ruler>
+							{/* 这个层是中间层也是工作区外框是让出标尺位置的包装层 */}
+							<div className="ml-[28px] mt-[28px] flex-1 overflow-hidden ">
+								{/* 下面是灰色工作区 不含标尺*/}
 								<div
 									ref={viewportRef}
 									id="viewport"
-									className=" w-[900px] h-[500px] max-w-full overflow-auto bg-slate-100/80"
+									className="overflow-auto bg-slate-100/80  h-full w-full "
 									style={{
 										backgroundImage:
 											"radial-gradient(circle, #e2e8f0 0.5px, transparent 0.5px)",
