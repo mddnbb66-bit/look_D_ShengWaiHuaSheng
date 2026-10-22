@@ -74,7 +74,7 @@ export const useZoom = ({
 	const scale = autoFit ? overViewScale : manualScale;
 	const scaledWidth = canvasSize ? canvasSize.width * scale : 0;
 	const scaledHeight = canvasSize ? canvasSize.height * scale : 0;
-	//得到当前视口观察的画布上的点；
+	//只计算视口正中心对应的原始画布坐标
 	function getCenter(viewport: HTMLElement) {
 		const x = (viewport.scrollLeft + viewport.clientWidth / 2) / scale; //前者滚动条的距离后者是视口宽度的一半 加起来除以scale变成原始坐标
 		const y = (viewport.scrollTop + viewport.clientHeight / 2) / scale;
@@ -94,12 +94,12 @@ export const useZoom = ({
 		viewport.scrollLeft = center.x * nextScale - viewport.clientWidth / 2;
 		viewport.scrollTop = center.y * nextScale - viewport.clientHeight / 2;
 	}
-	//处理加减,加的时候，除了倍率，还有移动滚动条到视口中心
+	//处理加减,加的时候，
 	function handleScaleChange(value: number) {
 		setSavedView(null);
 		const nextScale = Number(clamp(value, 0.1, 1.5).toFixed(2));
-		if (!viewportRef.current) return;
-		changeScroll(viewportRef.current, nextScale, getCenter(viewportRef.current));
+		setManualScale(nextScale);
+		setAutoFit(false);
 	}
 	//切换函数
 	function handleSwitchOverview() {

@@ -37,7 +37,7 @@ function ProjectList() {
 				settings: {
 					width: 1920,
 					height: 1080,
-					backgroundColor: "pink",
+					backgroundColor: "white",
 					backgroundImage: "xxxurl",
 					gridSize: 111,
 				},

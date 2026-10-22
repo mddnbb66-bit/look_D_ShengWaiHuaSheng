@@ -1,10 +1,10 @@
 // 编辑器页：读取 URL 的 ID → 请求这个项目的详情
+
 import { useZoom } from "@/hook/useZoom";
 import { use, useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { getPageById, savePage } from "../../api/page";
 import { Button } from "antd";
-import type { PageDSL } from "@/core/schema/page";
 import { useSchemaStore } from "@/store/schema-store";
 import { useShallow } from "zustand/shallow";
 import { Minus, Plus, Maximize, RotateCcw } from "lucide-react";
@@ -290,8 +290,25 @@ export default function EditorIndex() {
 												left: 0,
 											}}
 										>
+											{/* //纯背景 */}
+											<div
+												style={{
+													position: "absolute",
+													inset: 0,
+													pointerEvents: "none", //鼠标点击、拖拽、悬停时，会“穿透”这个元素
+													backgroundImage:
+														"linear-gradient(to right, rgba(0,0,0,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.06) 1px, transparent 1px)",
+													backgroundSize: "15px 15px",
+												}}
+											/>
 											这是大布
 										</div>
+										{/* 辅助线层 */}
+										{/* <GuideLayer
+											width={canvasSize?.width ?? 0}
+											height={canvasSize?.height ?? 0}
+											scale={scale}
+										/> */}
 									</div>
 								</div>
 							</div>
