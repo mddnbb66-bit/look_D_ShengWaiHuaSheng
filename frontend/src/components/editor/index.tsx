@@ -12,10 +12,15 @@ import { Ruler } from "./ruler/Ruler";
 import { Renderer } from "@/core/renderer/Renderer";
 import { textDefaultConfig } from "@/config/basic-config/text.config";
 //测试文本数据
-const text = {
+const text1 = {
 	...textDefaultConfig,
 	id: "1145",
 	style: { top: 100, left: 100, width: 100, height: 30, zIndex: 1 },
+};
+const text2 = {
+	...textDefaultConfig,
+	id: "1145",
+	style: { top: 200, left: 200, width: 100, height: 30, zIndex: 1 },
 };
 //清洗数据的函数
 const toNumber = (value: number | string | undefined, defaultNum: number) => {
@@ -309,7 +314,7 @@ export default function EditorIndex() {
 													backgroundSize: "15px 15px",
 												}}
 											/>
-											<Renderer schema={text} />
+											<Renderer schema={[text1, text2]} />
 										</div>
 										{/* 辅助线层 */}
 										{/* <GuideLayer
