@@ -1,4 +1,5 @@
 // 组件类型枚举
+//也就只描述组件叫什么种类
 export type ComponentType =
 	| "Text"
 	| "Image"

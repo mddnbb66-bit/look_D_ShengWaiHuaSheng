@@ -9,6 +9,14 @@ import { useSchemaStore } from "@/store/schema-store";
 import { useShallow } from "zustand/shallow";
 import { Minus, Plus, Maximize, RotateCcw } from "lucide-react";
 import { Ruler } from "./ruler/Ruler";
+import { Renderer } from "@/core/renderer/Renderer";
+import { textDefaultConfig } from "@/config/basic-config/text.config";
+//测试文本数据
+const text = {
+	...textDefaultConfig,
+	id: "1145",
+	style: { top: 100, left: 100, width: 100, height: 30, zIndex: 1 },
+};
 //清洗数据的函数
 const toNumber = (value: number | string | undefined, defaultNum: number) => {
 	if (typeof value === "number") return value;
@@ -301,7 +309,7 @@ export default function EditorIndex() {
 													backgroundSize: "15px 15px",
 												}}
 											/>
-											这是大布
+											<Renderer schema={text} />
 										</div>
 										{/* 辅助线层 */}
 										{/* <GuideLayer
