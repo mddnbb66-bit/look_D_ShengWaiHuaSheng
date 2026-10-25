@@ -17,5 +17,5 @@
     "allowJs": true,
     "checkJs": false
   },
-  "include": ["src", "../backend/src/model"]
+  "include": ["src", "../backend/src/model", "src/core/schema/.ts"]
 }
