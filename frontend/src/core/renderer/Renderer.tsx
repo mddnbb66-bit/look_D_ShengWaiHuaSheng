@@ -1,35 +1,32 @@
 import { ReactNode } from "react";
 import { ComponentNodeType } from "../schema/ownType";
-import { componentRegistryMap, type RegistryOkCommponent } from "@/components/materials/registry";
 import type { PageDSL } from "../schema/page";
-//兜底的未知组件
-const unKnowComponent = ({ node }: any) => {
-	return <div style={{ color: "red" }}>未知组件,类型是{node.type}</div>;
-};
+import { RootContainerComponent } from "@/components/materials/basic/RootContainer";
+import { NodeRenderer } from "./NodeRenderer";
 // Renderer 自己收到的参数（和物料组件的 RendererProps 不是一回事）
 interface SchemaRendererProps {
-	schema: ComponentNodeType | ComponentNodeType[] | PageDSL; // 单个节点 / 一组节点 / 整个页面
+	schema: PageDSL; //整个页面
 }
 /**
  * 我传了个 schema = {[text1,text2]}
  * 就是{schema:[text1,text2]}
- *
- * @param 到手了给解构出schema=[text1,text2]的组，然后变量
- * @returns
  */
-
+// 传进来的数据长这样
+// {
+// 	schema: {
+// 		type: "RootContainer",
+// 		settings: { /* ... */ },
+// 		children: [text1, text2]
+// 	}
+// }
 export function Renderer({ schema }: SchemaRendererProps): ReactNode {
-	if (Array.isArray(schema)) {
-		//递归遍历一个个，外层return 是为了立刻结束函数，后面的代码都不执行
-		return schema.map((node) => {
-			return <Renderer schema={node} key={node.id} />;
-		});
-	}
-	//node就是Text1，Text2这种下面是单个节点的处理
-	const renderComponent = componentRegistryMap.get(schema.type) ?? unKnowComponent;
-	const renderChildren = (children: ComponentNodeType[]) => <Renderer schema={children} />;
-	const content = renderComponent({ node: schema, renderChildren }); //新建一个对象，键叫 node，值是变量 schema 里装的东西。
-	// 新增：根容器就是画布本身，不用包
-	if (schema.type === "RootContainer") return content;
-	return <div style={{ position: "absolute", ...schema.style }}>{content}</div>;
+	// 下面就是   ([text1, text2]) => 先text1 => <NodeRenderer node={text1}再是text2 />;
+	const renderChildren = (children: ComponentNodeType[]) =>
+		children.map((child) => <NodeRenderer key={child.id} node={child} />);
+	// 最后返回根容器
+	return <RootContainerComponent node={schema} renderChildren={renderChildren} />;
 }
+// 子渲染器 ->渲染子节点
+// 根渲染器 -> 渲染根节点
+// renderChildren里面调用子渲染器
+// 先 根渲染器把渲染函数带下去 -> 根容器调用renderChildren -> NodeRenderer渲染合适的子组件->套到根容器->index用Renderer得到渲染好的根容器
