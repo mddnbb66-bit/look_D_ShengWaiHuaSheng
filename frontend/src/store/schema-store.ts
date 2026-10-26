@@ -87,7 +87,6 @@ export const useSchemaStore = create<SchemaState>()(
 				if (state.schema) {
 					// 这段代码可以补齐旧项目中缺少的 settings 字段：
 					const currentSettings = state.schema.settings ?? {};
-
 					state.schema.settings = {
 						...currentSettings,
 						width: currentSettings.width ?? 1920,

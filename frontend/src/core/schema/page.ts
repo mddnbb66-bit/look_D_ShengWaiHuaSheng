@@ -1,3 +1,4 @@
+import { ComponentNodeType } from "./ownType";
 export interface PageDSL {
 	id: string; //它是页面根节点（RootContainer）在组件树里的唯一标识
 	name: string; //页面名称
@@ -17,6 +18,6 @@ export interface PageDSL {
 	};
 	// 组件树 (核心)
 	// 这里的 children 就是第一层级的组件
-	children?: [];
+	children?: ComponentNodeType[];
 }
 //ss

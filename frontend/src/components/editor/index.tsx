@@ -19,7 +19,7 @@ const text1 = {
 };
 const text2 = {
 	...textDefaultConfig,
-	id: "1145",
+	id: "1146",
 	style: { top: 200, left: 200, width: 100, height: 30, zIndex: 1 },
 };
 //清洗数据的函数
@@ -294,8 +294,6 @@ export default function EditorIndex() {
 											style={{
 												width: schema.settings.width,
 												height: schema.settings.height,
-												backgroundColor:
-													schema.settings.backgroundColor || "red",
 												transform: `scale(${scale})`,
 												position: "absolute",
 												transformOrigin: "top left",
@@ -303,18 +301,9 @@ export default function EditorIndex() {
 												left: 0,
 											}}
 										>
-											{/* //纯背景 */}
-											<div
-												style={{
-													position: "absolute",
-													inset: 0,
-													pointerEvents: "none", //鼠标点击、拖拽、悬停时，会“穿透”这个元素
-													backgroundImage:
-														"linear-gradient(to right, rgba(0,0,0,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.06) 1px, transparent 1px)",
-													backgroundSize: "15px 15px",
-												}}
+											<Renderer
+												schema={{ ...schema, children: [text1, text2] }}
 											/>
-											<Renderer schema={[text1, text2]} />
 										</div>
 										{/* 辅助线层 */}
 										{/* <GuideLayer

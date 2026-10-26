@@ -1,3 +1,5 @@
+import { PageDSL } from "./page";
+import { ComponentNodeType } from "./ownType";
 // 组件类型枚举
 //也就只描述组件叫什么种类
 export type ComponentType =
@@ -64,4 +66,11 @@ export interface BaseComponentNodeType {
 	// events?: {
 	//   onClick?: Action[]; // 点击时触发的动作（如：跳转链接、弹窗）
 	// };
+}
+/**
+ * 每个物料组件收到的参数
+ */
+export interface RendererProps {
+	node: ComponentNodeType | PageDSL; //要么是一个节点，要么是一整个树即根节点
+	mode?: "edit" | "preview";
 }
