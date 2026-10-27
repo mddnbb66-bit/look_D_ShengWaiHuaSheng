@@ -27,6 +27,7 @@ export function Renderer({ schema }: SchemaRendererProps): ReactNode {
 	return <RootContainerComponent node={schema} renderChildren={renderChildren} />;
 }
 // 子渲染器 ->渲染子节点
-// 根渲染器 -> 渲染根节点
+// 整页渲染器 -> 渲染整节点
 // renderChildren里面调用子渲染器
-// 先 根渲染器把渲染函数带下去 -> 根容器调用renderChildren -> NodeRenderer渲染合适的子组件->套到根容器->index用Renderer得到渲染好的根容器
+// 先 整页渲染器把渲染函数带下去 -> 根容器调用renderChildren -> NodeRenderer渲染合适的子组件->套到根容器->index用Renderer得到渲染好的根容器
+// renderer负责整页入口与根容器接线

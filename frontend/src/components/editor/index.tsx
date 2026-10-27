@@ -11,6 +11,7 @@ import { Minus, Plus, Maximize, RotateCcw } from "lucide-react";
 import { Ruler } from "./ruler/Ruler";
 import { Renderer } from "@/core/renderer/Renderer";
 import { textDefaultConfig } from "@/config/basic-config/text.config";
+import { nanoid } from "nanoid";
 //测试文本数据
 const text1 = {
 	...textDefaultConfig,
@@ -41,9 +42,13 @@ export default function EditorIndex() {
 	const canvasRef = useRef<HTMLDivElement | null>(null); // 内层画布
 	const [scroll, setScroll] = useState({ left: 0, top: 0 });
 	const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null); //就是把 Schema 里的画布宽高整理出来，供 useZoom 计算缩放
-	const { schema, setSchema } = useSchemaStore(
+	const { schema, setSchema, addNode } = useSchemaStore(
 		//schema 是描述这个页面的数据对象，不是那块界面本身
-		useShallow((state) => ({ schema: state.schema, setSchema: state.setSchema }))
+		useShallow((state) => ({
+			schema: state.schema,
+			setSchema: state.setSchema,
+			addNode: state.addNode,
+		}))
 	);
 
 	const {
@@ -133,6 +138,15 @@ export default function EditorIndex() {
 		if (!node) return; //m
 		setScroll({ left: node.scrollLeft, top: node.scrollTop });
 	}
+	//单独加文字节点的设置
+	function handleAddNode() {
+		if (!schema) return;
+		let textNode = {
+			...textDefaultConfig,
+			id: nanoid(),
+			style: { top: 100, left: 100, width: 100, height: 30, zIndex: 1 },
+		};
+	}
 	//计算总览
 	if (error) {
 		//他人带这同id放访问就会出现这样的页面
@@ -204,7 +218,11 @@ export default function EditorIndex() {
 						横跨3栏的工具栏
 					</div>
 					{/* 组件栏 */}
-					<div className="border-r border-slate-200 bg-white">组件栏</div>
+					<div className="border-r border-slate-200 bg-white relative">
+						<div className="absolute top-10 left-10">
+							<button onClick={handleAddNode}>创建文字</button>
+						</div>
+					</div>
 					{/* 中间栏 */}
 					<div className="flex min-h-0 min-w-0 flex-col ">
 						{/* 缩放控制栏 */}
@@ -301,9 +319,7 @@ export default function EditorIndex() {
 												left: 0,
 											}}
 										>
-											<Renderer
-												schema={{ ...schema, children: [text1, text2] }}
-											/>
+											<Renderer schema={schema} />
 										</div>
 										{/* 辅助线层 */}
 										{/* <GuideLayer

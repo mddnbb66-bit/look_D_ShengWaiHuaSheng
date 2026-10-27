@@ -28,6 +28,7 @@ const unKnowComponent = ({ node }: any) => {
 export function NodeRenderer({ node }: { node: ComponentNodeType }) {
 	//先查表，得到对应的子组件
 	const NodeComponent = componentRegistryMap.get(node.type) ?? unKnowComponent;
+	// 容器里的孩子也交给 NodeRenderer，形成递归
 	//包一层然后渲染
 	return (
 		<div style={{ position: "absolute", ...node.style }}>

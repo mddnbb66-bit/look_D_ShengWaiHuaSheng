@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import type { PageDSL } from "@/core/schema/page";
 import { Component } from "react";
 import { immer } from "zustand/middleware/immer";
+import { ComponentNodeType } from "@/core/schema/ownType";
 //默认草稿
 // 创建一份全新的默认 Schema，避免复用旧草稿
 const createDefaultSchema = (): PageDSL => ({
@@ -21,14 +22,13 @@ const createDefaultSchema = (): PageDSL => ({
 	children: [],
 });
 //dsl树
-type ComponentNode = { val: 1; next: 11 };
 interface SchemaState {
 	// 页面组件树
 	schema: PageDSL | null;
 	// 当前选中的组件 id（用于属性面板、图层面板等联动）
 	selectedId: string | null;
 	// 当前选中的组件节点配置
-	selectedNode: ComponentNode | null;
+	selectedNode: ComponentNodeType | null;
 	// 更新页面级配置（名称、描述、画布尺寸等）
 	updatePage: (patch: Partial<PageDSL>) => void;
 	// 初始化页面组件树
@@ -36,17 +36,17 @@ interface SchemaState {
 	// 更新当前选中的组件 id
 	setSelectedId: (id: string | null) => void;
 	// 查找节点
-	findItem: (
+	findNode: (
 		id: string,
-		componentNode: ComponentNode | PageDSL
-	) => ComponentNode | PageDSL | null;
+		omponentNodeType: ComponentNodeType | PageDSL
+	) => ComponentNodeType | PageDSL | null;
 	// 新增节点
-	addItem: (parentId: string, newNode: ComponentNode) => boolean;
+	addNode: (parentId: string, newNode: ComponentNodeType) => boolean;
 	// 删除节点
-	removeItem: (id: string) => boolean;
+	removeNode: (id: string) => boolean;
 	// 更新节点
 	//partial是个啥类型？
-	updateItem: (id: string, updates: Partial<ComponentNode>) => boolean;
+	updateNode: (id: string, updates: Partial<ComponentNodeType>) => boolean;
 }
 
 /**
@@ -97,16 +97,27 @@ export const useSchemaStore = create<SchemaState>()(
 			});
 		},
 		setSelectedId: () => {},
-		findItem: () => {
+		findNode: () => {
 			return null;
 		},
-		addItem: () => {
+		addNode: (parentId: string, newNode: ComponentNodeType) => {
+			const { schema } = get();
+			if (!schema) return false;
+			let isSuccess = false;
+			set((state) => {
+				if (parentId !== state.schema?.id) return;
+				if (!state.schema.children) {
+					state.schema.children = [];
+				}
+				state.schema.children.push(newNode);
+				isSuccess = true;
+			});
+			return isSuccess;
+		},
+		removeNode: () => {
 			return true;
 		},
-		removeItem: () => {
-			return true;
-		},
-		updateItem: () => {
+		updateNode: () => {
 			return true;
 		},
 	}))
