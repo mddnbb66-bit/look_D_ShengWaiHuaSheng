@@ -4,6 +4,7 @@ import type { PageDSL } from "@/core/schema/page";
 import { Component } from "react";
 import { immer } from "zustand/middleware/immer";
 import { ComponentNodeType } from "@/core/schema/ownType";
+import { findNodeById, updateNodeById, removeNodeById, addNodeToParent } from "@/hook/CRUDtree";
 //默认草稿
 // 创建一份全新的默认 Schema，避免复用旧草稿
 const createDefaultSchema = (): PageDSL => ({
@@ -96,29 +97,86 @@ export const useSchemaStore = create<SchemaState>()(
 				}
 			});
 		},
-		setSelectedId: () => {},
-		findNode: () => {
-			return null;
+		//点击选中，传入id,靠findNodeById这个返回节点所有数据
+		// 然后更新当前选中的组件 id，并同步选中节点配置
+		setSelectedId: (id: string | null) => {
+			set((state) => {
+				state.selectedId = id;
+				if (id && state.schema) {
+					// 只有 id 存在，并且页面 schema 已加载时，才继续查找节点
+					const node = findNodeById(id, state.schema);
+					state.selectedNode =
+						node && node.id !== state.schema.id ? (node as ComponentNodeType) : null;
+				} else {
+					state.selectedNode = null;
+				}
+			});
 		},
+		/**
+		 * 根据id查找组件树中的某个组件
+		 * @param id 组件id
+		 * @param componentNode 组件树节点
+		 * @returns
+		 */
+		//点击组件，返回全部数据，包括整个schema
+		findNode: (id: string, componentNode: PageDSL | ComponentNodeType) => {
+			return findNodeById(id, componentNode);
+		},
+		/**
+		 * 根据父亲id和组件给组件树中的某个组件
+		 * @param id 组件id
+		 * @param componentNode 组件树节点
+		 * @returns
+		 */
 		addNode: (parentId: string, newNode: ComponentNodeType) => {
+			const { schema } = get(); //旧快照
+			if (!schema) return false;
+			let isSuccess = false;
+			set((state) => {
+				if (!state.schema) return;
+				isSuccess = addNodeToParent(parentId, state.schema, newNode);
+			});
+			return isSuccess;
+		},
+		/**
+		 * 删除指定ID的节点
+		 * @param id 要删除的节点id
+		 * @returns 是否删除成功
+		 */
+		removeNode: (id: string) => {
+			const { schema } = get();
+			if (!schema) return false;
+			let isSuccess = false;
+			// 不能删除根节点
+			if (id === schema.id) return false;
+			set((state) => {
+				if (!state.schema) return;
+				//删除节点
+				isSuccess = removeNodeById(id, state.schema);
+				// 如果删除的是当前选中节点，清空选中状态
+				if (isSuccess && state.selectedId === id) {
+					state.selectedId = null;
+					state.selectedNode = null;
+				}
+			});
+
+			return isSuccess;
+		},
+
+		updateNode: (id: string, updates: Partial<ComponentNodeType>): boolean => {
 			const { schema } = get();
 			if (!schema) return false;
 			let isSuccess = false;
 			set((state) => {
-				if (parentId !== state.schema?.id) return;
-				if (!state.schema.children) {
-					state.schema.children = [];
+				if (!state.schema) return;
+				//更新节点
+				isSuccess = updateNodeById(id, state.schema, updates);
+				if (isSuccess && state.selectedId === id) {
+					const node = findNodeById(id, state.schema);
+					state.selectedNode = node ? (node as ComponentNodeType) : null;
 				}
-				state.schema.children.push(newNode);
-				isSuccess = true;
 			});
 			return isSuccess;
-		},
-		removeNode: () => {
-			return true;
-		},
-		updateNode: () => {
-			return true;
 		},
 	}))
 );

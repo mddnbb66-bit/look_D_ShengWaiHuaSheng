@@ -60,7 +60,7 @@ export const useZoom = ({
 		computeOverViewScale();
 		//响应式处理
 		// 工作区大小变化:左右面板展开、收起或调整宽度；父布局变化；工作区自身宽高改变
-		// ResizeObserver：浏览器原生 API，专门监听某个 DOM 元素的尺寸变化
+		//ResizeObserver：浏览器原生 API，专门监听某个 DOM 元素的尺寸变化
 		const resizeObserver = new ResizeObserver(computeOverViewScale);
 		resizeObserver.observe(viewportRef.current);
 		// 浏览器窗口大小变化 :拖动浏览器窗口边缘、最大化或还原、停靠开发者工具挤占页面空间

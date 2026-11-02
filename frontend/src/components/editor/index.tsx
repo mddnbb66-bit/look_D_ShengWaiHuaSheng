@@ -7,11 +7,16 @@ import { getPageById, savePage } from "../../api/page";
 import { Button } from "antd";
 import { useSchemaStore } from "@/store/schema-store";
 import { useShallow } from "zustand/shallow";
-import { Minus, Plus, Maximize, RotateCcw } from "lucide-react";
+import { Minus, Plus, Maximize, RotateCcw, ClockFading } from "lucide-react";
 import { Ruler } from "./ruler/Ruler";
 import { Renderer } from "@/core/renderer/Renderer";
 import { textDefaultConfig } from "@/config/basic-config/text.config";
 import { nanoid } from "nanoid";
+import { removeNodeById, updateNodeById } from "@/hook/CRUDtree";
+import { DroppableItem } from "@/core/dnd-kit/DroppableItem";
+import { DraggableItem } from "@/core/dnd-kit/DraggableItem";
+import { BasicPanel } from "@/components/panels/component-panel/BasicPanel";
+import { DndWrapper } from "@/core/dnd-kit/DndWrapper";
 //测试文本数据
 const text1 = {
 	...textDefaultConfig,
@@ -23,7 +28,7 @@ const text2 = {
 	id: "1146",
 	style: { top: 200, left: 200, width: 100, height: 30, zIndex: 1 },
 };
-//清洗数据的函数
+//清洗数据的函数:仅提供数据
 const toNumber = (value: number | string | undefined, defaultNum: number) => {
 	if (typeof value === "number") return value;
 	const parsed = Number(value);
@@ -42,12 +47,15 @@ export default function EditorIndex() {
 	const canvasRef = useRef<HTMLDivElement | null>(null); // 内层画布
 	const [scroll, setScroll] = useState({ left: 0, top: 0 });
 	const [canvasSize, setCanvasSize] = useState<{ width: number; height: number } | null>(null); //就是把 Schema 里的画布宽高整理出来，供 useZoom 计算缩放
-	const { schema, setSchema, addNode } = useSchemaStore(
+	const { schema, setSchema, addNode, findNode, updateNode, removeNode } = useSchemaStore(
 		//schema 是描述这个页面的数据对象，不是那块界面本身
 		useShallow((state) => ({
 			schema: state.schema,
 			setSchema: state.setSchema,
 			addNode: state.addNode,
+			findNode: state.findNode,
+			updateNode: state.updateNode,
+			removeNode: state.removeNode,
 		}))
 	);
 
@@ -141,11 +149,40 @@ export default function EditorIndex() {
 	//单独加文字节点的设置
 	function handleAddNode() {
 		if (!schema) return;
-		let textNode = {
+
+		const newNode = {
 			...textDefaultConfig,
 			id: nanoid(),
 			style: { top: 100, left: 100, width: 100, height: 30, zIndex: 1 },
 		};
+
+		// ① 先把新节点添加到页面
+		const added = addNode(schema.id, newNode);
+		if (!added) return;
+
+		// ② 再修改刚添加的节点
+		const updated = updateNode(newNode.id, {
+			props: {
+				...newNode.props,
+				content: "修改成功",
+			},
+		});
+		console.log("更新是否成功：", updated);
+
+		// ③ 读取修改后的最新页面，检查节点
+		const afterUpdate = useSchemaStore.getState().schema;
+		if (!afterUpdate) return;
+
+		console.log("更新后的节点：", findNode(newNode.id, afterUpdate));
+
+		// ④ 检查不存在的节点是否返回false
+		console.log("不存在的节点更新结果：", updateNode("not-exist", {}));
+		console.log(newNode.id);
+	}
+	//单独删除文字节点的设置
+	function handleRemoveNode() {
+		if (!schema) return;
+		removeNode("ReUcWjeKh9vifZWMAatAe");
 	}
 	//计算总览
 	if (error) {
@@ -217,121 +254,123 @@ export default function EditorIndex() {
 					<div className="col-start-1 col-end-4 row-start-1 row-end-2">
 						横跨3栏的工具栏
 					</div>
-					{/* 组件栏 */}
-					<div className="border-r border-slate-200 bg-white relative">
-						<div className="absolute top-10 left-10">
-							<button onClick={handleAddNode}>创建文字</button>
+					<DndWrapper scale={scale}>
+						{/* 组件栏 */}
+						<div className="border-r border-slate-200 bg-white relative">
+							<BasicPanel />
 						</div>
-					</div>
-					{/* 中间栏 */}
-					<div className="flex min-h-0 min-w-0 flex-col ">
-						{/* 缩放控制栏 */}
-						<div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-1.5 text-xs">
-							<div className=" flex items-center gap-3 text-slate-500">
-								<span>画布:</span>
-								<span>
-									{schema.settings.height} x {schema.settings.width}
-								</span>
-								<span>{scale}</span>
-							</div>
-							{/* 处理缩放的 */}
-							<div className="flex items-center justify-between gap-1.5">
-								<button
-									className={`rounded-md border p-1 transition-all ${autoFit ? "border-brand-200 text-brand-500 bg-brand-50" : "border-slate-200 text-slate-400 hover:border-brand-200 hover:text-brand-500"}`}
-									onClick={handleSwitchOverview}
-									disabled={autoFit && !savedView}
-								>
-									<Maximize className="h-3.5 w-3.5" />
-								</button>
-								<button
-									className="rounded-md border border-slate-200 p-1 text-slate-400 hover:border-brand-200 hover:text-brand-500 transition-all"
-									onClick={() => handleScaleChange(scale - 0.1)}
-								>
-									<Minus className="h-3.5 w-3.5" />
-								</button>
-								<span className="w-12 text-center text-xs text-slate-500">
-									{Math.round(scale * 100)}%
-								</span>
-								<button
-									className="rounded-md border border-slate-200 p-1 text-slate-400 hover:border-brand-200 hover:text-brand-500 transition-all"
-									onClick={() => handleScaleChange(scale + 0.1)}
-								>
-									<Plus className="h-3.5 w-3.5" />
-								</button>
-								<button
-									className="rounded-md border border-slate-200 p-1 text-slate-400 hover:border-brand-200 hover:text-brand-500 transition-all ml-0.5"
-									onClick={handleResetScale}
-								>
-									<RotateCcw className="h-3.5 w-3.5" />
-								</button>
-							</div>
-						</div>
-						{/* 标尺＋工作区容器 */}
-						<div className="relative flex  flex-1 overflow-hidden">
-							<Ruler
-								xOry="x"
-								length={canvasSize?.width ?? 0}
-								scale={scale}
-								scroll={scroll.left}
-							></Ruler>
-							<Ruler
-								xOry="y"
-								length={canvasSize?.height ?? 0}
-								scale={scale}
-								scroll={scroll.top}
-							></Ruler>
-							{/* 这个层是中间层也是工作区外框是让出标尺位置的包装层 */}
-							<div className="ml-[28px] mt-[28px] flex-1 overflow-hidden ">
-								{/* 下面是灰色工作区 不含标尺*/}
-								<div
-									ref={viewportRef}
-									id="viewport"
-									className="overflow-auto bg-slate-100/80  h-full w-full "
-									style={{
-										backgroundImage:
-											"radial-gradient(circle, #e2e8f0 0.5px, transparent 0.5px)",
-										backgroundSize: "16px 16px",
-									}}
-									//获取滚动的信息 元素滚动的时候触发
-									onScroll={handleScroll}
-								>
-									{/* //下面是缩放占位层 */}
-									<div
-										className="relative"
-										style={{
-											width: scaledWidth,
-											height: scaledHeight,
-											minWidth: 320, //保证视觉上有最小尺寸，不塌陷
-											minHeight: 180,
-										}}
+						{/* 中间栏 */}
+						<div className="flex min-h-0 min-w-0 flex-col ">
+							{/* 缩放控制栏 */}
+							<div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-1.5 text-xs">
+								<div className=" flex items-center gap-3 text-slate-500">
+									<span>画布:</span>
+									<span>
+										{schema.settings.height} x {schema.settings.width}
+									</span>
+									<span>{scale}</span>
+								</div>
+								{/* 处理缩放的 */}
+								<div className="flex items-center justify-between gap-1.5">
+									<button
+										className={`rounded-md border p-1 transition-all ${autoFit ? "border-brand-200 text-brand-500 bg-brand-50" : "border-slate-200 text-slate-400 hover:border-brand-200 hover:text-brand-500"}`}
+										onClick={handleSwitchOverview}
+										disabled={autoFit && !savedView}
 									>
-										{/* //下面是渲染层 */}
+										<Maximize className="h-3.5 w-3.5" />
+									</button>
+									<button
+										className="rounded-md border border-slate-200 p-1 text-slate-400 hover:border-brand-200 hover:text-brand-500 transition-all"
+										onClick={() => handleScaleChange(scale - 0.1)}
+									>
+										<Minus className="h-3.5 w-3.5" />
+									</button>
+									<span className="w-12 text-center text-xs text-slate-500">
+										{Math.round(scale * 100)}%
+									</span>
+									<button
+										className="rounded-md border border-slate-200 p-1 text-slate-400 hover:border-brand-200 hover:text-brand-500 transition-all"
+										onClick={() => handleScaleChange(scale + 0.1)}
+									>
+										<Plus className="h-3.5 w-3.5" />
+									</button>
+									<button
+										className="rounded-md border border-slate-200 p-1 text-slate-400 hover:border-brand-200 hover:text-brand-500 transition-all ml-0.5"
+										onClick={handleResetScale}
+									>
+										<RotateCcw className="h-3.5 w-3.5" />
+									</button>
+								</div>
+							</div>
+							{/* 标尺＋工作区容器 */}
+							<div className="relative flex  flex-1 overflow-hidden">
+								<Ruler
+									xOry="x"
+									length={canvasSize?.width ?? 0}
+									scale={scale}
+									scroll={scroll.left}
+								></Ruler>
+								<Ruler
+									xOry="y"
+									length={canvasSize?.height ?? 0}
+									scale={scale}
+									scroll={scroll.top}
+								></Ruler>
+								{/* 这个层是中间层也是工作区外框是让出标尺位置的包装层 */}
+								<div className="ml-[28px] mt-[28px] flex-1 overflow-hidden ">
+									<DroppableItem id={schema.id}>
+										{/* 下面是灰色工作区 不含标尺*/}
 										<div
-											ref={canvasRef}
-											id="canvas"
+											ref={viewportRef}
+											id="viewport"
+											className="overflow-auto bg-slate-100/80  h-full w-full "
 											style={{
-												width: schema.settings.width,
-												height: schema.settings.height,
-												transform: `scale(${scale})`,
-												position: "absolute",
-												transformOrigin: "top left",
-												top: 0,
-												left: 0,
+												backgroundImage:
+													"radial-gradient(circle, #e2e8f0 0.5px, transparent 0.5px)",
+												backgroundSize: "16px 16px",
 											}}
+											//获取滚动的信息 元素滚动的时候触发
+											onScroll={handleScroll}
 										>
-											<Renderer schema={schema} />
-										</div>
-										{/* 辅助线层 */}
-										{/* <GuideLayer
+											{/* //下面是缩放占位层 */}
+											<div
+												className="relative"
+												style={{
+													width: scaledWidth,
+													height: scaledHeight,
+													minWidth: 320, //保证视觉上有最小尺寸，不塌陷
+													minHeight: 180,
+												}}
+											>
+												{/* //下面是渲染层 */}
+												<div
+													ref={canvasRef}
+													id="canvas"
+													style={{
+														width: schema.settings.width,
+														height: schema.settings.height,
+														transform: `scale(${scale})`,
+														position: "absolute",
+														transformOrigin: "top left",
+														top: 0,
+														left: 0,
+													}}
+												>
+													<Renderer schema={schema} />
+												</div>
+												{/* 辅助线层 */}
+												{/* <GuideLayer
 											width={canvasSize?.width ?? 0}
 											height={canvasSize?.height ?? 0}
 											scale={scale}
 										/> */}
-									</div>
+											</div>
+										</div>
+									</DroppableItem>
 								</div>
 							</div>
 						</div>
-					</div>
+					</DndWrapper>
 					{/* 对话栏 */}
 					<div className="border-l border-slate-200 bg-white h-full overflow-hidden">
 						对话栏
