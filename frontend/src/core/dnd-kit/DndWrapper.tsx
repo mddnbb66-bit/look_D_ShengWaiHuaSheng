@@ -9,7 +9,7 @@ import { DndContext, DragOverlay, type DragStartEvent, type DragEndEvent } from 
 import { useState } from "react";
 import { useSchemaStore } from "@/store/schema-store";
 import { nanoid } from "nanoid";
-import { Schema } from "mongoose";
+import { snapToGrid, nomalSize } from "../utils/grid";
 export function DndWrapper({ children, scale = 1 }: { children: React.ReactNode; scale?: number }) {
 	// 下面的东西是显示拖拽预览的东西，置为null，不影响event.active.id 这个真正的东西
 	const [activeType, setActiveType] = useState<string | null>(null);
@@ -27,6 +27,8 @@ export function DndWrapper({ children, scale = 1 }: { children: React.ReactNode;
 	const handleDragEnd = (event: DragEndEvent) => {
 		// 下面的东西是显示拖拽预览的东西 先取消掉
 		setActiveType(null);
+		const schema = schemaStore.schema;
+		if (!schema) return;
 		//下面是落点源的id
 		const dropItemId = event.over?.id;
 		if (!dropItemId) return;
@@ -44,11 +46,17 @@ export function DndWrapper({ children, scale = 1 }: { children: React.ReactNode;
 		// 还原成大画布坐标系
 		const x = (newNodePosition!.left - overPosition!.left + scrollLeft) / scale;
 		const y = (newNodePosition!.top - overPosition!.top + scrollTop) / scale;
-		const newStyle = { left: x, top: y };
+
+		//下面是吸附逻辑 看看吸附到哪了
+		const gridsize = nomalSize(schema.settings.gridSize);
+		const snapLeft = snapToGrid(x, gridsize).originPosition;
+		const snapTop = snapToGrid(y, gridsize).originPosition;
+		//下面是正式更新css
+		const newStyle = { left: snapLeft, top: snapTop };
 		newConfig.style = { ...newConfig.style, ...newStyle };
 		// 落下去生成全新的id
 		newConfig.id = nanoid();
-		schemaStore.addNode(schemaStore.schema?.id, newConfig);
+		schemaStore.addNode(schema?.id, newConfig);
 	};
 
 	// event.over          → 这次命中的接收区域

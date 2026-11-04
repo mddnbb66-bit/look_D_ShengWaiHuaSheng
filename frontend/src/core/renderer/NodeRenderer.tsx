@@ -1,6 +1,7 @@
 //处理非根节点的渲染
 import { componentRegistryMap } from "@/components/materials/registry";
 import type { ComponentNodeType } from "../schema/ownType";
+import { RndItem } from "../dnd-kit/RndItem";
 const unKnowComponent = ({ node }: any) => {
 	return <div style={{ color: "red" }}>未知组件,类型是{node.type}</div>;
 };
@@ -31,8 +32,8 @@ export function NodeRenderer({ node }: { node: ComponentNodeType }) {
 	// 容器里的孩子也交给 NodeRenderer，形成递归
 	//包一层然后渲染
 	return (
-		<div style={{ position: "absolute", ...node.style }}>
+		<RndItem nodeData={node}>
 			<NodeComponent node={node} />
-		</div>
+		</RndItem>
 	);
 }

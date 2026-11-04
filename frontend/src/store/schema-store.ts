@@ -5,6 +5,7 @@ import { Component } from "react";
 import { immer } from "zustand/middleware/immer";
 import { ComponentNodeType } from "@/core/schema/ownType";
 import { findNodeById, updateNodeById, removeNodeById, addNodeToParent } from "@/hook/CRUDtree";
+import { DEFAULT_GRID_SIZE, DEFAULT_SNAP_SIZE } from "@/core/utils/grid";
 //默认草稿
 // 创建一份全新的默认 Schema，避免复用旧草稿
 const createDefaultSchema = (): PageDSL => ({
@@ -18,7 +19,8 @@ const createDefaultSchema = (): PageDSL => ({
 	settings: {
 		width: 1920,
 		height: 1080,
-		gridSize: 15, // 默认吸附网格尺寸
+		gridSize: DEFAULT_GRID_SIZE, // 默认网格尺寸
+		snapSize: DEFAULT_SNAP_SIZE, // 默认吸附生效的尺寸
 	},
 	children: [],
 });
