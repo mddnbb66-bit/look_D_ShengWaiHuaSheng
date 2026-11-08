@@ -3,6 +3,7 @@ import { ComponentNodeType } from "../schema/ownType";
 import type { PageDSL } from "../schema/page";
 import { RootContainerComponent } from "@/components/materials/basic/RootContainer";
 import { NodeRenderer } from "./NodeRenderer";
+import { useSchemaStore } from "@/store/schema-store";
 // Renderer 自己收到的参数（和物料组件的 RendererProps 不是一回事）
 interface SchemaRendererProps {
 	schema: PageDSL; //整个页面

@@ -7,7 +7,7 @@ import { create } from "zustand";
 // 	{ xOy: "x", value: 120 },
 // 	{ xOy: "y", value: 90 },
 // ]);
-// / 的意思是	在画布横坐标120处画一条竖线	在画布纵坐标90处画一条横线
+// 的意思是	在画布横坐标120处画一条竖线	在画布纵坐标90处画一条横线
 type XpisOrYpis = "x" | "y";
 interface GuideState {
 	activeSnaps: { xOy: XpisOrYpis; value: number }[]; // 即时吸附到的网格线位置

@@ -50,6 +50,9 @@ interface SchemaState {
 	// 更新节点
 	//partial是个啥类型？
 	updateNode: (id: string, updates: Partial<ComponentNodeType>) => boolean;
+	//下面是缩放相关
+	scale: number;
+	setScale: (value: number) => void;
 }
 
 /**
@@ -65,6 +68,8 @@ export const useSchemaStore = create<SchemaState>()(
 		selectedId: null,
 		// 当前选中的组件节点配置
 		selectedNode: null,
+		//当前的倍数
+		scale: 1,
 		/**
 		 * 更新页面级配置，保持组件树不变
 		 * @param patch 需要更新的字段集合
@@ -179,6 +184,12 @@ export const useSchemaStore = create<SchemaState>()(
 				}
 			});
 			return isSuccess;
+		},
+		//改当前缩放
+		setScale: (value: number) => {
+			set((state) => {
+				state.scale = value;
+			});
 		},
 	}))
 );

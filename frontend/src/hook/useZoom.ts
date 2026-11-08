@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { useSchemaStore } from "@/store/schema-store";
 /**
  * 缩放 Hook 入参
  * - canvasSize: 画布原始尺寸（宽高），用于计算缩放后尺寸
@@ -40,6 +41,7 @@ export const useZoom = ({
 	minScale = 0.1,
 	maxScale = 1.5,
 }: ZoomOptions) => {
+	const setScale = useSchemaStore((state) => state.setScale);
 	const [autoFit, setAutoFit] = useState(true); //为true代表总览倍数 自适应模式开关
 	const [manualScale, setManualScale] = useState(1); //人工调整
 	const [overViewScale, setOverViewScale] = useState(1); //总览倍率
@@ -72,6 +74,10 @@ export const useZoom = ({
 	}, [canvasSize, viewportRef, minScale, maxScale]);
 	//缩放比例和缩放占位区的缩放宽高
 	const scale = autoFit ? overViewScale : manualScale;
+	//同步全局scale
+	useEffect(() => {
+		setScale(scale);
+	}, [scale]);
 	const scaledWidth = canvasSize ? canvasSize.width * scale : 0;
 	const scaledHeight = canvasSize ? canvasSize.height * scale : 0;
 	//只计算视口正中心对应的原始画布坐标
@@ -131,3 +137,10 @@ export const useZoom = ({
 		handleSwitchOverview,
 	};
 };
+// 手动缩放、切换总览、重置、自适应
+//                 ↓
+//        useZoom算出最终scale
+//                 ↓
+//        effect统一更新store.scale
+//                 ↓
+//        RndItem读取store.scale
