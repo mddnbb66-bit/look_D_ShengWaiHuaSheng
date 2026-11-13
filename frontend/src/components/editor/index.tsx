@@ -17,6 +17,7 @@ import { DroppableItem } from "@/core/dnd-kit/DroppableItem";
 import { DraggableItem } from "@/core/dnd-kit/DraggableItem";
 import { BasicPanel } from "@/components/panels/component-panel/BasicPanel";
 import { DndWrapper } from "@/core/dnd-kit/DndWrapper";
+import { GuideLayer } from "./ruler/GuideLayer";
 //测试文本数据
 const text1 = {
 	...textDefaultConfig,
@@ -359,11 +360,11 @@ export default function EditorIndex() {
 													<Renderer schema={schema} />
 												</div>
 												{/* 辅助线层 */}
-												{/* <GuideLayer
-											width={canvasSize?.width ?? 0}
-											height={canvasSize?.height ?? 0}
-											scale={scale}
-										/> */}
+												<GuideLayer
+													width={scaledWidth ?? 0}
+													height={scaledHeight ?? 0}
+													scale={scale}
+												/>
 											</div>
 										</div>
 									</DroppableItem>

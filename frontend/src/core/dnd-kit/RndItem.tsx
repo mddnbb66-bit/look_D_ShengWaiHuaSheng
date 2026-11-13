@@ -60,8 +60,8 @@ export function RndItem({ nodeData, children }: RndItemProps) {
 		const snapY = snapToGrid(dragData.y, step);
 		// 本次需要显示的参考线
 		const lines: { xOy: "x" | "y"; value: number }[] = [];
-		snapX.isSnap && lines.push({ xOy: "x", value: snapX.originPosition });
-		snapY.isSnap && lines.push({ xOy: "y", value: snapY.originPosition });
+		lines.push({ xOy: "x", value: snapX.originPosition });
+		lines.push({ xOy: "y", value: snapY.originPosition });
 		//保存到显示数组中
 		setAvtiveSnaps(lines);
 	};
@@ -78,6 +78,7 @@ export function RndItem({ nodeData, children }: RndItemProps) {
 				}
 	 */
 	const handleDragStop = (_e: DraggableEvent, dragData: DraggableData) => {
+		setAvtiveSnaps([]);
 		const snapLeft = snapToGrid(dragData.x, step).originPosition;
 		const snapTop = snapToGrid(dragData.y, step).originPosition;
 		updateItem(nodeData.id, { style: { ...style, left: snapLeft, top: snapTop } });
@@ -108,7 +109,7 @@ export function RndItem({ nodeData, children }: RndItemProps) {
 	 * @param ref 	当前被缩放的 HTML 元素，用.可以获得获取缩放后的尺寸，就是ref.offset
 	 * @param position	//缩放后的坐标
 	 */
-	//_是为了因对包的要求，无奈
+	//_是为了因对包的检查要求，无奈
 	const handleResizeStop = (
 		_e: MouseEvent | TouchEvent,
 		_direction: string,
