@@ -20,6 +20,7 @@ export function DndWrapper({ children, scale = 1 }: { children: React.ReactNode;
 		// 目前仅做调试输出，真正的实例 id 在拖拽结束时统一生成，保证「每次成功拖拽一个新实例就得到一个全新的 id」
 		console.log("DragStartEvent:", event);
 		//这个id就是ComponentType，只是注册的时候必须写id
+		// 这个id实际上就是type:"Text"
 		//event.active    // 正在拖的那个来源的信息对象
 		setActiveType(event.active.id as string);
 	};

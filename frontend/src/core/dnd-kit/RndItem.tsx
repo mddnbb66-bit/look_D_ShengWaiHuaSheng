@@ -31,7 +31,7 @@ export function RndItem({ nodeData, children }: RndItemProps) {
 	const scale = useSchemaStore((state) => state.scale);
 	const selectedId = useSchemaStore((state) => state.selectedId);
 	const setSelectedId = useSchemaStore((state) => state.setSelectedId);
-	const updateItem = useSchemaStore((state) => state.updateNode);
+	const updateNode = useSchemaStore((state) => state.updateNode);
 	const removeItem = useSchemaStore((state) => state.removeNode);
 	const gridSize = useSchemaStore((state) => state.schema?.settings?.gridSize);
 	const setAvtiveSnaps = useGuideStore((state) => state.setActiveSnaps);
@@ -81,7 +81,7 @@ export function RndItem({ nodeData, children }: RndItemProps) {
 		setAvtiveSnaps([]);
 		const snapLeft = snapToGrid(dragData.x, step).originPosition;
 		const snapTop = snapToGrid(dragData.y, step).originPosition;
-		updateItem(nodeData.id, { style: { ...style, left: snapLeft, top: snapTop } });
+		updateNode(nodeData.id, { style: { ...style, left: snapLeft, top: snapTop } });
 	};
 	//单个组件缩放结束时触发
 	/** 单个缩放结束时同步最新尺寸与坐标到 schema */
@@ -113,9 +113,9 @@ export function RndItem({ nodeData, children }: RndItemProps) {
 	const handleResizeStop = (
 		_e: MouseEvent | TouchEvent,
 		_direction: string,
-		ref: HTMLElement,
+		ref: HTMLElement, //当前被缩放的 HTML 元素，用.可以获得获取缩放后的尺寸，就offset
 		_delta: ResizableDelta, //表示这次缩放尺寸变化了多少，是怎量
-		position: Position
+		position: Position //是position.x/y是组件最终左上角的位置
 	) => {
 		//改变缩放后的宽高
 		const changeSacleWidth = snapToGrid(ref.offsetWidth, step).originPosition;
@@ -123,7 +123,7 @@ export function RndItem({ nodeData, children }: RndItemProps) {
 		//左上角缩放的处理
 		const snapLeft = snapToGrid(position.x, step).originPosition;
 		const snapTop = snapToGrid(position.y, step).originPosition;
-		updateItem(nodeData.id, {
+		updateNode(nodeData.id, {
 			style: {
 				...style,
 				width: changeSacleWidth,
@@ -150,7 +150,7 @@ export function RndItem({ nodeData, children }: RndItemProps) {
 		event.stopPropagation();
 		setSelectedId(null);
 	};
-
+	// 画布上的组件位置：相对于 RootContainer
 	return (
 		<Rnd
 			size={{ width: style.width, height: style.height }}
@@ -164,7 +164,6 @@ export function RndItem({ nodeData, children }: RndItemProps) {
 			onDragStop={handleDragStop} //组件移动结束时触发
 			onResizeStop={handleResizeStop} //组件缩放结束时触发
 		>
-			{/* 内层容器负责点击选中、高亮边框和标签区域 */}
 			<div
 				style={{
 					position: "relative",
@@ -173,6 +172,7 @@ export function RndItem({ nodeData, children }: RndItemProps) {
 				}}
 				onClick={handleSelect}
 			>
+				{/* 内层容器负责点击选中、高亮边框和标签区域 */}
 				{isSelect && (
 					<SelectionOverLay
 						name={nodeData.name || nodeData.type}
