@@ -6,6 +6,7 @@ import { immer } from "zustand/middleware/immer";
 import { ComponentNodeType } from "@/core/schema/ownType";
 import { findNodeById, updateNodeById, removeNodeById, addNodeToParent } from "@/hook/CRUDtree";
 import { DEFAULT_GRID_SIZE, DEFAULT_SNAP_SIZE } from "@/core/utils/grid";
+import { nomalSize, snapToGrid } from "@/core/utils/grid";
 //默认草稿
 // 创建一份全新的默认 Schema，避免复用旧草稿
 const createDefaultSchema = (): PageDSL => ({
@@ -74,7 +75,27 @@ export const useSchemaStore = create<SchemaState>()(
 		 * 更新页面级配置，保持组件树不变
 		 * @param patch 需要更新的字段集合
 		 */
-		updatePage: () => {},
+		updatePage: (patch: Partial<PageDSL>) => {
+			set((state) => {
+				const schema = state.schema;
+				if (!schema) return;
+				// 页面名称
+				if (patch.name !== undefined) {
+					schema.name = patch.name;
+				}
+				// 页面 props：旧的展开在前，新的在后，新值覆盖旧值
+				if (patch.props) {
+					schema.props = { ...schema.props, ...patch.props };
+				}
+				// 页面设置：先把更新的合并，再统一规范网格大小和吸附阈值
+				if (patch.settings) {
+					const newSetting = { ...schema.settings, ...patch.settings };
+					newSetting.gridSize = nomalSize(newSetting.gridSize);
+					newSetting.snapSize = newSetting.snapSize ?? DEFAULT_SNAP_SIZE;
+					schema.settings = newSetting;
+				}
+			});
+		},
 
 		/**
 		 * 初始化页面组件树，可传入Schema或不传
